@@ -3,56 +3,89 @@
 <head>
   <meta charset="UTF-8">
   <title>Admin Page</title>
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <h1>Admin Panel</h1>
 
-  <div>
-    <label>Increase debt: </label>
-    <input id="increaseAmount" type="number" />
-    <button onclick="increaseDugovi()">Increase</button>
+  <!-- Login form -->
+  <div id="loginDiv">
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
   </div>
 
-  <div>
-    <label>Change interest (%): </label>
-    <input id="newKamatna" type="number" />
-    <button onclick="changeKamatna()">Change</button>
-  </div>
+  <div id="adminControls" style="display:none;">
+    <div>
+      <label>Increase debt: </label>
+      <input id="increaseAmount" type="number" />
+      <button onclick="increaseDugovi()">Increase</button>
+    </div>
 
-  <div>
-    <button onclick="resetDugovi()">Reset Debt</button>
+    <div>
+      <label>Change interest (%): </label>
+      <input id="newKamatna" type="number" />
+      <button onclick="changeKamatna()">Change</button>
+    </div>
+
+    <div>
+      <button onclick="resetDugovi()">Reset Debt</button>
+    </div>
   </div>
 
   <script>
-    netlifyIdentity.init();
-    netlifyIdentity.on('init', user => {
-      if(!user){
-        alert('Not authorized');
-        window.location.href = '/';
-      }
-    });
+    const supabaseUrl = 'https://YOUR_PROJECT_URL.supabase.co';
+    const supabaseKey = 'YOUR_ANON_KEY';
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    async function increaseDugovi(){
-      const amount = document.getElementById('increaseAmount').value;
-      await fetch('/.netlify/functions/updateDugovi', {
-        method:'POST',
-        body: JSON.stringify({amount}),
-      });
+    async function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        alert('Login failed: ' + error.message);
+        return;
+      }
+
+      document.getElementById('loginDiv').style.display = 'none';
+      document.getElementById('adminControls').style.display = 'block';
+    }
+
+    async function fetchValues() {
+      let { data, error } = await supabase
+        .from('debt_tracker')
+        .select('*')
+        .eq('id', 1)
+        .single();
+
+      if (error) { console.error(error); return; }
+      return data;
+    }
+
+    async function increaseDugovi() {
+      const amount = parseFloat(document.getElementById('increaseAmount').value);
+      await supabase
+        .from('debt_tracker')
+        .update({ dugovi: supabase.raw('dugovi + ?', [amount]) })
+        .eq('id', 1);
       alert('Debt updated!');
     }
 
-    async function changeKamatna(){
-      const amount = document.getElementById('newKamatna').value;
-      await fetch('/.netlify/functions/updateKamatna', {
-        method:'POST',
-        body: JSON.stringify({amount}),
-      });
+    async function changeKamatna() {
+      const newRate = parseFloat(document.getElementById('newKamatna').value);
+      await supabase
+        .from('debt_tracker')
+        .update({ kamatna_stopa: newRate })
+        .eq('id', 1);
       alert('Interest updated!');
     }
 
-    async function resetDugovi(){
-      await fetch('/.netlify/functions/resetDugovi');
+    async function resetDugovi() {
+      await supabase
+        .from('debt_tracker')
+        .update({ dugovi: 0, last_reset: new Date().toISOString().split('T')[0] })
+        .eq('id', 1);
       alert('Debt reset!');
     }
   </script>
