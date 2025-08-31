@@ -4,36 +4,56 @@
   <meta charset="UTF-8">
   <title>Public Page</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+  body {
+    background-color: black;
+    color: white;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* vertical centering */
+    align-items: center;     /* horizontal centering */
+    height: 100vh;
+  }
+  </style>
 </head>
 <body>
   <div id="lastReset" style="position:absolute; top:0; left:0;"></div>
-  <h1 id="kamatna">Kamatna stopa na 24 časa: </h1>
-  <h2 id="dugovi">Tvoji dugovi: </h2>
+  <h2 id="kamatna">Kamatna stopa na 24 časa: </h1>
+  <h1 id="dugovi">Tvoji dugovi: </h2>
 
   <script>
-    // Supabase client setup
-    const supabaseUrl = 'https://YOUR_PROJECT_URL.supabase.co';
-    const supabaseKey = 'YOUR_ANON_KEY';
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const supabaseUrl = 'https://yvpjltawuapxjalmdnbx.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2cGpsdGF3dWFweGphbG1kbmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY2NjQ2ODEsImV4cCI6MjA3MjI0MDY4MX0.4sP4Pe670KGziaodL9E_ZxftwvNYSzXORsSFDUVZ5f8';
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
     async function fetchValues() {
-      let { data, error } = await supabase
-        .from('debt_tracker')
-        .select('*')
-        .eq('id', 1)
-        .single();
+      try {
+        const { data, error } = await supabaseClient
+          .from('debt_tracker')
+          .select('*')
+          .eq('id', 1)
+          .single();
 
-      if (error) {
-        console.error(error);
-        return;
+        if (error) throw error;
+
+        console.log('Fetched values:', data);
+        document.getElementById('kamatna').innerText = `Kamatna stopa na 24 časa: ${data.kamatna_stopa} %`;
+        document.getElementById('dugovi').innerText = `Tvoji dugovi: ${data.dugovi} RSD`;
+        document.getElementById('lastReset').innerText = `Poslednji reset duga: ${data.last_reset}`;
+      } catch (err) {
+        console.error('[Index] Fetch error:', err);
       }
-
-      document.getElementById('kamatna').innerText = `Kamatna stopa na 24 časa: ${data.kamatna_stopa} %`;
-      document.getElementById('dugovi').innerText = `Tvoji dugovi: ${data.dugovi} RSD`;
-      document.getElementById('lastReset').innerText = `Poslednji reset duga: ${data.last_reset}`;
     }
 
+    // fetch once
     fetchValues();
+
+    // optional: refresh every 5 seconds
+    setInterval(fetchValues, 5000);
   </script>
 </body>
 </html>
