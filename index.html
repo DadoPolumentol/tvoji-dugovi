@@ -1,11 +1,29 @@
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Public Page</title>
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+</head>
+<body>
+  <div id="lastReset" style="position:absolute; top:0; left:0;"></div>
+  <h1 id="kamatna">Kamatna stopa na 24 časa: </h1>
+  <h2 id="dugovi">Tvoji dugovi: </h2>
 
-<button onclick="netlifyIdentity.open()">Login</button>
+  <button onclick="netlifyIdentity.open()">Login</button>
 
-<script>
-  netlifyIdentity.on('login', user => {
-    console.log('Logged in:', user);
-    netlifyIdentity.close();
-    window.location.href = '/admin.html'; // redirect to admin page
-  });
-</script>
+  <script>
+    netlifyIdentity.init();
+
+    async function fetchValues(){
+      const res = await fetch('/.netlify/functions/getValues');
+      const data = await res.json();
+      document.getElementById('kamatna').innerText = `Kamatna stopa na 24 časa: ${data.kamatnaStopa} %`;
+      document.getElementById('dugovi').innerText = `Tvoji dugovi: ${data.dugovi} RSD`;
+      document.getElementById('lastReset').innerText = `Poslednji reset duga: ${data.lastReset}`;
+    }
+
+    fetchValues();
+  </script>
+</body>
+</html>

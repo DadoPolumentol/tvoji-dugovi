@@ -1,10 +1,60 @@
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Page</title>
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+</head>
+<body>
+  <h1>Admin Panel</h1>
 
-<script>
-  netlifyIdentity.on('init', user => {
-    if (!user) {
-      alert('Not authorized');
-      window.location.href = '/'; // back to public page
+  <div>
+    <label>Increase debt: </label>
+    <input id="increaseAmount" type="number" />
+    <button onclick="increaseDugovi()">Increase</button>
+  </div>
+
+  <div>
+    <label>Change interest (%): </label>
+    <input id="newKamatna" type="number" />
+    <button onclick="changeKamatna()">Change</button>
+  </div>
+
+  <div>
+    <button onclick="resetDugovi()">Reset Debt</button>
+  </div>
+
+  <script>
+    netlifyIdentity.init();
+    netlifyIdentity.on('init', user => {
+      if(!user){
+        alert('Not authorized');
+        window.location.href = '/';
+      }
+    });
+
+    async function increaseDugovi(){
+      const amount = document.getElementById('increaseAmount').value;
+      await fetch('/.netlify/functions/updateDugovi', {
+        method:'POST',
+        body: JSON.stringify({amount}),
+      });
+      alert('Debt updated!');
     }
-  });
-</script>
+
+    async function changeKamatna(){
+      const amount = document.getElementById('newKamatna').value;
+      await fetch('/.netlify/functions/updateKamatna', {
+        method:'POST',
+        body: JSON.stringify({amount}),
+      });
+      alert('Interest updated!');
+    }
+
+    async function resetDugovi(){
+      await fetch('/.netlify/functions/resetDugovi');
+      alert('Debt reset!');
+    }
+  </script>
+</body>
+</html>
