@@ -1,0 +1,10 @@
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
+<script>
+  netlifyIdentity.on('init', user => {
+    if (!user) {
+      alert('Not authorized');
+      window.location.href = '/'; // back to public page
+    }
+  });
+</script>
