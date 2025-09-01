@@ -3,7 +3,7 @@ name: Adjust Debt Daily
 on:
   schedule:
     - cron: '0 0 * * *' # every day at midnight UTC
-  workflow_dispatch:
+  workflow_dispatch: # allows manual trigger
 
 jobs:
   adjust_debt:
@@ -12,13 +12,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install Supabase CLI
-        run: npm install -g supabase
+      - name: Install Supabase CLI (Linux)
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz \
+          | tar -xvz -C /usr/local/bin
+          supabase --version
 
       - name: Run debt adjustment query
         run: supabase db query "SELECT adjust_debt();"
