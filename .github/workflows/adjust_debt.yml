@@ -3,7 +3,7 @@ name: Adjust Debt Daily
 on:
   schedule:
     - cron: '0 0 * * *' # every day at midnight UTC
-  workflow_dispatch: # allows manual trigger
+  workflow_dispatch:    # allows manual trigger
 
 jobs:
   adjust_debt:
@@ -12,14 +12,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Supabase CLI (Linux)
-        run: |
-          curl -fsSL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz \
-          | tar -xvz -C /usr/local/bin
-          supabase --version
-
-      - name: Run debt adjustment query
-        run: supabase db query "SELECT adjust_debt();"
+      - name: Trigger adjust_debt via REST (invoke RPC)
         env:
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          echo "Invoking adjust_debt() via REST RPC..."
+          curl -i -X POST "${SUPABASE_URL}/rest/v1/rpc/adjust_debt" \
+            -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            -w "\n----curl exit: %{\nhttp_code}\n----\n"
