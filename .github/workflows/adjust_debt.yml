@@ -2,7 +2,7 @@ name: Adjust Debt Daily
 
 on:
   schedule:
-    - cron: '0 0 * * *' # every day at midnight UTC
+    - cron: '0 22 * * *' # every day at midnight UTC
   workflow_dispatch:    # allows manual trigger
 
 jobs:
